@@ -1,0 +1,27 @@
+{
+  "name": "@emmetio/field-parser",
+  "version": "1.0.0",
+  "description": "Parses snippet fields (aka tab-stops) like `${1:foo}` in given string",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/emmetio/field-parser.git"
+  },
+  "keywords": ["emmet", "field", "tabstop"],
+  "author": "Sergey Chikuyonok <serge.che@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/emmetio/field-parser/issues"
+  },
+  "homepage": "https://github.com/emmetio/field-parser#readme",
+  "devDependencies": {
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.18.0",
+    "babel-register": "^6.18.0",
+    "mocha": "^3.1.2",
+    "rollup": "^0.36.3",
+    "rollup-watch": "^2.5.0"
+  }
+}
