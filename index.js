@@ -10,8 +10,8 @@ import StringStream from './lib/string-stream';
  */
 export default function parse(string) {
     const stream = new StringStream(string);
-    let cleanString = '', field;
     const fields = [];
+    let cleanString = '', field;
 
     while (!stream.eol()) {
         const ch = stream.next();
@@ -38,7 +38,7 @@ export default function parse(string) {
  * function, if provided
  * @param  {String} string String to mark
  * @param  {Array} fields Array of field descriptor. A field descriptor is a
- * `[index, location, length]` array. It is important that fields in array
+ * `{index, location, length}` array. It is important that fields in array
  * must be ordered by their location in string: some fields my refer the same
  * location so they must appear in order that user expects.
  * @param  {Function} [token] Function that generates field token. This function
