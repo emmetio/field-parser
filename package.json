@@ -1,6 +1,6 @@
 {
   "name": "@emmetio/field-parser",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Parses snippet fields (aka tab-stops) like `${1:foo}` in given string",
   "main": "dist/field-parser.cjs.js",
   "jsnext:main": "dist/field-parser.es.js",
@@ -16,7 +16,11 @@
     "type": "git",
     "url": "git+https://github.com/emmetio/field-parser.git"
   },
-  "keywords": ["emmet", "field", "tabstop"],
+  "keywords": [
+    "emmet",
+    "field",
+    "tabstop"
+  ],
   "author": "Sergey Chikuyonok <serge.che@gmail.com>",
   "license": "MIT",
   "bugs": {
