@@ -29,7 +29,13 @@ export default function parse(string) {
         }
     }
 
-    return {fields, string: cleanString};
+    return {
+        fields,
+        string: cleanString,
+        mark(token) {
+            return mark(this.string, this.fields, token);
+        }
+    };
 }
 
 /**

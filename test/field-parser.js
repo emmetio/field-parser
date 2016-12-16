@@ -29,5 +29,12 @@ describe('Field parser', () => {
         const token = (index, placeholder) =>
             placeholder ? `[[${placeholder}:${index}]]` : `[[${index}]]`;
         assert.equal(mark(model.string, model.fields, token), 'foo [[0]] [[bar:1]] [[200]][[1]]');
+
+        // mark via model method
+        assert.equal(model.mark(), 'foo ${0} ${1:bar} ${200}${1}');
+        assert.equal(model.mark(token), 'foo [[0]] [[bar:1]] [[200]][[1]]');
+
+        model.fields.forEach(field => field.index += 100);
+        assert.equal(model.mark(), 'foo ${100} ${101:bar} ${300}${101}');
     });
 });

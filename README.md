@@ -33,3 +33,14 @@ const marked = mark('foo bar', [
 
 console.log(marked); // ${1:foo} ${5:bar}
 ```
+
+...or parse string and then use built-it `mark` method:
+
+```js
+import parse from '@emmetio/field-parser';
+
+const fieldModel = parse('foo $0 ${1:bar} ${2}${1}');
+fieldModel.forEach(field => field.index += 100);
+
+console.log(fieldModel.mark()); // foo $100 ${101:bar} ${102}${101}
+```
