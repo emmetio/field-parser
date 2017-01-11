@@ -12,7 +12,7 @@ const fieldModel = parse('foo $0 ${1:bar} ${2}${1}');
 console.log(fieldModel.string);
 // outputs "foo  bar "
 
-// `.fields` is array of `{index, start, length}` fields
+// `.fields` is array of `{index, location, length}` fields
 console.log(fieldModel.fields);
 // outputs:
 // {index: 0, location: 4, length: 0}
