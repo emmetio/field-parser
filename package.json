@@ -3,14 +3,11 @@
   "version": "0.1.1",
   "description": "Parses snippet fields (aka tab-stops) like `${1:foo}` in given string",
   "main": "dist/field-parser.cjs.js",
-  "jsnext:main": "dist/field-parser.es.js",
+  "module": "dist/field-parser.es.js",
   "scripts": {
     "test": "mocha",
-    "build": "npm run build:cjs && npm run build:es",
-    "build:cjs": "rollup -o dist/field-parser.cjs.js -f cjs ./index.js",
-    "build:es": "rollup -o dist/field-parser.es.js -f es ./index.js",
-    "prepublish": "npm run test && npm run build",
-    "watch": "rollup -w -o dist/field-parser.cjs.js -f cjs ./index.js"
+    "build": "rollup -c",
+    "prepublish": "npm run test && npm run build"
   },
   "repository": {
     "type": "git",
@@ -31,7 +28,6 @@
     "babel-plugin-transform-es2015-modules-commonjs": "^6.18.0",
     "babel-register": "^6.18.0",
     "mocha": "^3.1.2",
-    "rollup": "^0.36.3",
-    "rollup-watch": "^2.5.0"
+    "rollup": "^0.41.1"
   }
 }
