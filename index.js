@@ -1,6 +1,12 @@
 'use strict';
 
-import StringStream from './lib/string-stream';
+import StreamReader from '@emmetio/stream-reader';
+
+const DOLLAR      = 36;  // $
+const COLON       = 58;  // :
+const ESCAPE      = 92;  // \
+const OPEN_BRACE  = 123; // {
+const CLOSE_BRACE = 125; // }
 
 /**
  * Finds fields in given string and returns object with field-less string
@@ -9,33 +15,27 @@ import StringStream from './lib/string-stream';
  * @return {Object}
  */
 export default function parse(string) {
-    const stream = new StringStream(string);
+    const stream = new StreamReader(string);
     const fields = [];
-    let cleanString = '', field;
+    let cleanString = '', offset = 0, pos = 0;
+	let code, field;
 
     while (!stream.eol()) {
-        const ch = stream.next();
-        if (ch === '\\') {
-            cleanString += ch + stream.next();
-        } else if (ch === '$' && (field = consumeField(stream))) {
-            fields.push({
-                index: field.index,
-                location: cleanString.length,
-                length: field.placeholder.length
-            });
-            cleanString += field.placeholder;
+        code = stream.peekCode();
+		pos = stream.pos;
+
+        if (code === ESCAPE) {
+			stream.pos += 2;
+        } else if (field = consumeField(stream, cleanString.length + pos - offset)) {
+            fields.push(field);
+            cleanString += stream.string.slice(offset, pos) + field.placeholder;
+			offset = stream.pos;
         } else {
-            cleanString += ch;
+			stream.pos++;
         }
     }
 
-    return {
-        fields,
-        string: cleanString,
-        mark(token) {
-            return mark(this.string, this.fields, token);
-        }
-    };
+	return new FieldString(cleanString + stream.string.slice(offset), fields);
 }
 
 /**
@@ -83,57 +83,61 @@ export function createToken(index, placeholder) {
 }
 
 /**
- * Consumes field from current stream position: it can be an `index` or
- * or `{index}` or `{index:placeholder}`
- * @param  {StringStream} stream
+ * Consumes field from current stream position: it can be an `$index` or
+ * or `${index}` or `${index:placeholder}`
+ * @param  {StreamReader} stream
+ * @param  {Number}       location Field location in *clean* string
  * @return {Object} Object with `index` and `placeholder` properties if
  * fieald was successfully consumed, `null` otherwise
  */
-function consumeField(stream) {
-    let index = consumeIndex(stream);
-    let placeholder = '';
+function consumeField(stream, location) {
+	const start = stream.pos;
 
-    // consumed $index placeholder
-    if (index != null) {
-        return {index, placeholder};
-    }
+	if (stream.eat(DOLLAR)) {
+		// Possible start of field
+		let index = consumeIndex(stream);
+		let placeholder = '';
 
-    if (stream.peek() === '{') {
-        const start = stream.pos;
+		// consumed $index placeholder
+		if (index != null) {
+			return new Field(index, placeholder, location);
+		}
 
-        stream.next();
-        index = consumeIndex(stream);
-        if (index != null) {
-            if (stream.peek() === ':') {
-                stream.next();
-                placeholder = consumePlaceholder(stream);
-            }
+		if (stream.eat(OPEN_BRACE)) {
+			index = consumeIndex(stream);
+	        if (index != null) {
+	            if (stream.eat(COLON)) {
+	                placeholder = consumePlaceholder(stream);
+	            }
 
-            if (stream.next() === '}') {
-                return {index, placeholder};
-            }
-        }
+	            if (stream.eat(CLOSE_BRACE)) {
+					return new Field(index, placeholder, location);
+	            }
+	        }
+		}
+	}
 
-        // If we reached here then there’s no valid field here, revert
-        // back to starting position
-        stream.pos = start;
-    }
+	// If we reached here then there’s no valid field here, revert
+	// back to starting position
+	stream.pos = start;
 }
 
 /**
  * Consumes a placeholder: value right after `:` in field. Could be empty
- * @param  {StringStream} stream
+ * @param  {StreamReader} stream
  * @return {String}
  */
 function consumePlaceholder(stream) {
-    const start = stream.pos;
-    let stack = [];
+	let code;
+	const stack = [];
+	stream.start = stream.pos;
 
     while (!stream.eol()) {
-        const ch = stream.peek();
-        if (ch === '{') {
+        code = stream.peekCode();
+
+        if (code === OPEN_BRACE) {
             stack.push(stream.pos);
-        } else if (ch === '}') {
+        } else if (code === CLOSE_BRACE) {
             if (!stack.length) {
                 break;
             }
@@ -149,19 +153,57 @@ function consumePlaceholder(stream) {
         throw err;
     }
 
-    return stream.string.slice(start, stream.pos);
+    return stream.current();
 }
 
 /**
  * Consumes integer from current stream position
- * @param  {StringStream} stream
+ * @param  {StreamReader} stream
  * @return {Number}
  */
 function consumeIndex(stream) {
-    let result = '';
-    while (/[0-9]/.test(stream.peek())) {
-        result += stream.next();
+	stream.start = stream.pos;
+
+    while (!stream.eol() && isNumber(stream.peekCode())) {
+		stream.pos++;
     }
 
-    return result ? Number(result) : null;
+    return stream.start !== stream.pos ? Number(stream.current()) : null;
+}
+
+class Field {
+	constructor(index, placeholder, location) {
+		this.index = index;
+		this.placeholder = placeholder;
+		this.location = location;
+		this.length = this.placeholder.length;
+	}
+}
+
+class FieldString {
+	/**
+	 * @param {String} string
+	 * @param {Field[]} fields
+	 */
+	constructor(string, fields) {
+		this.string = string;
+		this.fields = fields;
+	}
+
+	mark(token) {
+		return mark(this.string, this.fields, token);
+	}
+
+	toString() {
+		return string;
+	}
+}
+
+/**
+ * Check if given code is a number
+ * @param  {Number}  code
+ * @return {Boolean}
+ */
+function isNumber(code) {
+    return code > 47 && code < 58;
 }
