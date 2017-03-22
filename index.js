@@ -1,6 +1,7 @@
 'use strict';
 
 import StreamReader from '@emmetio/stream-reader';
+import { isNumber } from '@emmetio/stream-reader-utils';
 
 const DOLLAR      = 36;  // $
 const COLON       = 58;  // :
@@ -15,25 +16,26 @@ const CLOSE_BRACE = 125; // }
  * @return {Object}
  */
 export default function parse(string) {
-    const stream = new StreamReader(string);
-    const fields = [];
-    let cleanString = '', offset = 0, pos = 0;
+	const stream = new StreamReader(string);
+	const fields = [];
+	let cleanString = '', offset = 0, pos = 0;
 	let code, field;
 
-    while (!stream.eol()) {
-        code = stream.peekCode();
+	while (!stream.eof()) {
+		code = stream.peek();
 		pos = stream.pos;
 
-        if (code === ESCAPE) {
-			stream.pos += 2;
-        } else if (field = consumeField(stream, cleanString.length + pos - offset)) {
-            fields.push(field);
-            cleanString += stream.string.slice(offset, pos) + field.placeholder;
+		if (code === ESCAPE) {
+			stream.next();
+			stream.next();
+		} else if (field = consumeField(stream, cleanString.length + pos - offset)) {
+			fields.push(field);
+			cleanString += stream.string.slice(offset, pos) + field.placeholder;
 			offset = stream.pos;
-        } else {
-			stream.pos++;
-        }
-    }
+		} else {
+			stream.next();
+		}
+	}
 
 	return new FieldString(cleanString + stream.string.slice(offset), fields);
 }
@@ -52,24 +54,24 @@ export default function parse(string) {
  * @return {String}  String with marked fields
  */
 export function mark(string, fields, token) {
-    token = token || createToken;
+	token = token || createToken;
 
-    // order fields by their location and appearence
-    // NB field ranges should not overlap! (not supported yet)
-    const ordered = fields
-    .map((field, order) => ({order, field, end: field.location + field.length}))
-    .sort((a, b) => (a.end - b.end) || (a.order - b.order));
+	// order fields by their location and appearence
+	// NB field ranges should not overlap! (not supported yet)
+	const ordered = fields
+	.map((field, order) => ({order, field, end: field.location + field.length}))
+	.sort((a, b) => (a.end - b.end) || (a.order - b.order));
 
-    // mark ranges in string
-    let offset = 0;
-    const result = ordered.map(item => {
-        const placeholder = string.substr(item.field.location, item.field.length);
-        const prefix = string.slice(offset, item.field.location);
-        offset = item.end;
-        return prefix + token(item.field.index, placeholder);
-    });
+	// mark ranges in string
+	let offset = 0;
+	const result = ordered.map(item => {
+		const placeholder = string.substr(item.field.location, item.field.length);
+		const prefix = string.slice(offset, item.field.location);
+		offset = item.end;
+		return prefix + token(item.field.index, placeholder);
+	});
 
-    return result.join('') + string.slice(offset);
+	return result.join('') + string.slice(offset);
 }
 
 /**
@@ -79,7 +81,7 @@ export function mark(string, fields, token) {
  * @return {String}
  */
 export function createToken(index, placeholder) {
-    return placeholder ? `\${${index}:${placeholder}}` : `\${${index}}`;
+	return placeholder ? `\${${index}:${placeholder}}` : `\${${index}}`;
 }
 
 /**
@@ -105,15 +107,15 @@ function consumeField(stream, location) {
 
 		if (stream.eat(OPEN_BRACE)) {
 			index = consumeIndex(stream);
-	        if (index != null) {
-	            if (stream.eat(COLON)) {
-	                placeholder = consumePlaceholder(stream);
-	            }
+			if (index != null) {
+				if (stream.eat(COLON)) {
+					placeholder = consumePlaceholder(stream);
+				}
 
-	            if (stream.eat(CLOSE_BRACE)) {
+				if (stream.eat(CLOSE_BRACE)) {
 					return new Field(index, placeholder, location);
-	            }
-	        }
+				}
+			}
 		}
 	}
 
@@ -132,28 +134,25 @@ function consumePlaceholder(stream) {
 	const stack = [];
 	stream.start = stream.pos;
 
-    while (!stream.eol()) {
-        code = stream.peekCode();
+	while (!stream.eof()) {
+		code = stream.peek();
 
-        if (code === OPEN_BRACE) {
-            stack.push(stream.pos);
-        } else if (code === CLOSE_BRACE) {
-            if (!stack.length) {
-                break;
-            }
-            stack.pop();
-        }
-        stream.pos++;
-    }
+		if (code === OPEN_BRACE) {
+			stack.push(stream.pos);
+		} else if (code === CLOSE_BRACE) {
+			if (!stack.length) {
+				break;
+			}
+			stack.pop();
+		}
+		stream.next();
+	}
 
-    if (stack.length) {
-        const pos = stack.pop();
-        const err = new Error('Unable to find matching "}" for curly brace at ' + stack.pop());
-        err.pos = pos;
-        throw err;
-    }
+	if (stack.length) {
+		throw stream.error('Unable to find matching "}" for curly brace at ' + stack.pop());
+	}
 
-    return stream.current();
+	return stream.current();
 }
 
 /**
@@ -163,12 +162,9 @@ function consumePlaceholder(stream) {
  */
 function consumeIndex(stream) {
 	stream.start = stream.pos;
-
-    while (!stream.eol() && isNumber(stream.peekCode())) {
-		stream.pos++;
-    }
-
-    return stream.start !== stream.pos ? Number(stream.current()) : null;
+	if (stream.eatWhile(isNumber)) {
+		return Number(stream.current());
+	}
 }
 
 class Field {
@@ -197,13 +193,4 @@ class FieldString {
 	toString() {
 		return string;
 	}
-}
-
-/**
- * Check if given code is a number
- * @param  {Number}  code
- * @return {Boolean}
- */
-function isNumber(code) {
-    return code > 47 && code < 58;
 }

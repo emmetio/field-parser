@@ -31,6 +31,7 @@
     "rollup": "^0.41.1"
   },
   "dependencies": {
-    "@emmetio/stream-reader": "^1.0.0"
+    "@emmetio/stream-reader": "^2.0.0",
+    "@emmetio/stream-reader-utils": "^0.1.0"
   }
 }
