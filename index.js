@@ -11,7 +11,7 @@ const CLOSE_BRACE = 125; // }
 
 /**
  * Finds fields in given string and returns object with field-less string
- * and array of fileds found
+ * and array of fields found
  * @param  {String} string
  * @return {Object}
  */
@@ -89,8 +89,8 @@ export function createToken(index, placeholder) {
  * or `${index}` or `${index:placeholder}`
  * @param  {StreamReader} stream
  * @param  {Number}       location Field location in *clean* string
- * @return {Object} Object with `index` and `placeholder` properties if
- * fieald was successfully consumed, `null` otherwise
+ * @return {Field} Object with `index` and `placeholder` properties if
+ * field was successfully consumed, `null` otherwise
  */
 function consumeField(stream, location) {
 	const start = stream.pos;
