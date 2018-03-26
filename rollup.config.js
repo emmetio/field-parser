@@ -1,12 +1,17 @@
 export default {
-	entry: './index.js',
-	exports: 'named',
+	input: './index.js',
 	external: [
 		'@emmetio/stream-reader',
 		'@emmetio/stream-reader-utils'
 	],
-	targets: [
-		{format: 'cjs', dest: 'dist/field-parser.cjs.js'},
-		{format: 'es',  dest: 'dist/field-parser.es.js'}
-	]
+	output: [{
+		format: 'cjs',
+		sourcemap: true,
+		exports: 'named',
+		file: 'dist/field-parser.cjs.js'
+	}, {
+		format: 'es',
+		sourcemap: true,
+		file: 'dist/field-parser.es.js'
+	}]
 };

@@ -1,9 +1,8 @@
 'use strict';
 
 const assert = require('assert');
-require('babel-register');
-const parse = require('../index').default;
-const mark = require('../index').mark;
+const parse = require('../').default;
+const mark = require('../').mark;
 
 describe('Field parser', () => {
 	it('parse', () => {

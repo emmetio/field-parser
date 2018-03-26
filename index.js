@@ -191,6 +191,6 @@ class FieldString {
 	}
 
 	toString() {
-		return string;
+		return this.string;
 	}
 }

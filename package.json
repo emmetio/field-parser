@@ -6,7 +6,8 @@
   "module": "dist/field-parser.es.js",
   "scripts": {
     "test": "mocha",
-    "build": "rollup -c",
+		"build": "rollup -c",
+		"pretest": "npm run build",
     "prepublish": "npm run test && npm run build"
   },
   "repository": {
@@ -25,13 +26,11 @@
   },
   "homepage": "https://github.com/emmetio/field-parser#readme",
   "devDependencies": {
-    "babel-plugin-transform-es2015-modules-commonjs": "^6.18.0",
-    "babel-register": "^6.18.0",
-    "mocha": "^3.1.2",
-    "rollup": "^0.41.1"
+    "mocha": "^5.0.5",
+    "rollup": "^0.57.1"
   },
   "dependencies": {
-    "@emmetio/stream-reader": "^2.0.0",
+    "@emmetio/stream-reader": "^2.2.0",
     "@emmetio/stream-reader-utils": "^0.1.0"
   }
 }
