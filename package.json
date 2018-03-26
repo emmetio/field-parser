@@ -1,13 +1,13 @@
 {
   "name": "@emmetio/field-parser",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Parses snippet fields (aka tab-stops) like `${1:foo}` in given string",
   "main": "dist/field-parser.cjs.js",
   "module": "dist/field-parser.es.js",
   "scripts": {
     "test": "mocha",
-		"build": "rollup -c",
-		"pretest": "npm run build",
+    "build": "rollup -c",
+    "pretest": "npm run build",
     "prepublish": "npm run test && npm run build"
   },
   "repository": {
